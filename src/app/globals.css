@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 51, 51, 51;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 245, 245, 245;
+  --primary-color: 239, 68, 68; /* Red-500 */
+  --secondary-color: 249, 115, 22; /* Orange-500 */
+  --accent-color: 253, 224, 71; /* Yellow-300 */
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+  min-height: 100vh;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-md shadow-md hover:shadow-lg transition-all duration-300;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-md shadow-sm hover:shadow-md border border-gray-200 transition-all duration-300;
+  }
+  
+  .input-field {
+    @apply w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent shadow-sm transition-all duration-300;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100;
+  }
+  
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .hero-section {
+    @apply bg-gradient-to-r from-red-500 to-orange-500 text-white py-20 px-4 rounded-2xl mb-12 shadow-lg;
+  }
+
+  .section-title {
+    @apply text-2xl font-bold mb-6 border-b-2 border-red-500 pb-2 inline-block;
+  }
+
+  .vendor-card-image {
+    @apply h-48 w-full object-cover transition-transform duration-500 group-hover:scale-105;
+  }
+
+  .rating-badge {
+    @apply flex items-center bg-yellow-100 px-2 py-1 rounded-full text-yellow-800 font-medium text-sm;
+  }
+
+  .menu-item-card {
+    @apply bg-white rounded-xl shadow-md overflow-hidden flex border border-gray-100 hover:shadow-lg transition-all duration-300;
+  }
+
+  .page-header {
+    @apply text-3xl font-bold mb-8 text-gray-800 border-b-2 border-red-500 pb-2 inline-block;
+  }
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Navbar styling */
+.nav-link-active {
+  @apply text-red-500 font-medium relative;
+}
+
+.nav-link-active::after {
+  content: '';
+  @apply absolute bottom-0 left-0 w-full h-0.5 bg-red-500 rounded;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d1d1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c1c1c1;
+}
