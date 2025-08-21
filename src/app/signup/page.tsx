@@ -43,8 +43,8 @@ export default function Signup() {
 
       // Redirect to login page on successful signup
       router.push('/login');
-    } catch (err: Error | unknown) {
-      setError(err.message || 'Something went wrong');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setLoading(false);
     }

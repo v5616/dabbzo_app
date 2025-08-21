@@ -36,8 +36,8 @@ export default function Checkout() {
       
       // Redirect to success page
       router.push('/checkout/success');
-    } catch (err: Error | unknown) {
-      setError(err.message || 'Payment processing failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Payment processing failed');
     } finally {
       setLoading(false);
     }
