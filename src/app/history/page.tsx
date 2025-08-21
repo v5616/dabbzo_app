@@ -121,7 +121,7 @@ export default function OrderHistory() {
           
           <h2 className="text-xl font-semibold mb-2">No Orders Yet</h2>
           <p className="text-gray-600 mb-4">
-            You haven't placed any orders yet. Start ordering delicious tiffin meals now!
+            You haven&apos;t placed any orders yet. Start ordering delicious tiffin meals now!
           </p>
           
           <Link href="/" className="btn-primary inline-block">

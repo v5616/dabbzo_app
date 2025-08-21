@@ -16,6 +16,13 @@ interface Order {
   estimatedDelivery: string;
   items: OrderItem[];
   total: number;
+  vendor: {
+    name: string;
+    address: string;
+  };
+  deliveryAddress: string;
+  driverName: string;
+  driverPhone: string;
 }
 
 const [order, setOrder] = useState<Order | null>(null);
@@ -79,17 +86,17 @@ const [order, setOrder] = useState<Order | null>(null);
       <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h2 className="text-xl font-semibold">Order #{order.id}</h2>
-            <p className="text-gray-600">From {order.vendor.name}</p>
+            <h2 className="text-xl font-semibold">Order #{order?.id}</h2>
+            <p className="text-gray-600">From {order?.vendor?.name}</p>
           </div>
           <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
-            {order.status}
+            {order?.status}
           </div>
         </div>
         
         <div className="border-t border-gray-200 my-4 pt-4">
           <p className="text-gray-700">
-            <span className="font-medium">Estimated Delivery:</span> {order.estimatedDelivery}
+            <span className="font-medium">Estimated Delivery:</span> {order?.estimatedDelivery}
           </p>
         </div>
       </div>
@@ -118,14 +125,14 @@ const [order, setOrder] = useState<Order | null>(null);
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <p className="text-gray-600 mb-1">Pickup From</p>
-            <p className="font-medium">{order.vendor.name}</p>
-            <p className="text-gray-700">{order.vendor.address}</p>
+            <p className="font-medium">{order?.vendor?.name}</p>
+            <p className="text-gray-700">{order?.vendor?.address}</p>
           </div>
           
           <div>
             <p className="text-gray-600 mb-1">Deliver To</p>
             <p className="font-medium">Your Address</p>
-            <p className="text-gray-700">{order.deliveryAddress}</p>
+            <p className="text-gray-700">{order?.deliveryAddress}</p>
           </div>
         </div>
         
@@ -138,8 +145,8 @@ const [order, setOrder] = useState<Order | null>(null);
               </svg>
             </div>
             <div>
-              <p className="font-medium">{order.driverName}</p>
-              <p className="text-gray-700">{order.driverPhone}</p>
+              <p className="font-medium">{order?.driverName}</p>
+              <p className="text-gray-700">{order?.driverPhone}</p>
             </div>
           </div>
         </div>
@@ -150,7 +157,7 @@ const [order, setOrder] = useState<Order | null>(null);
         <h3 className="text-xl font-semibold mb-4">Order Summary</h3>
         
         <div className="space-y-3 mb-6">
-          {order.items.map((item: OrderItem, index: number) => (
+          {order?.items?.map((item: OrderItem, index: number) => (
             <div key={index} className="flex justify-between">
               <div>
                 <span className="font-medium">{item.quantity}x </span>
@@ -164,7 +171,7 @@ const [order, setOrder] = useState<Order | null>(null);
         <div className="border-t border-gray-200 pt-4 mt-4">
           <div className="flex justify-between font-bold text-lg">
             <div>Total</div>
-            <div>₹{order.total}</div>
+            <div>₹{order?.total}</div>
           </div>
         </div>
       </div>

@@ -9,7 +9,7 @@ export default function About() {
           At Dabbzo, we connect food lovers with local home chefs who prepare authentic, homemade tiffin meals. Our mission is to provide convenient access to healthy, home-cooked food while supporting local culinary talent.
         </p>
         <p className="text-gray-700">
-          We believe that everyone deserves access to nutritious, homemade meals even when they're too busy to cook. That's why we've built a platform that makes ordering tiffin services as easy as a few clicks.
+          We believe that everyone deserves access to nutritious, homemade meals even when they&apos;re too busy to cook. That&apos;s why we&apos;ve built a platform that makes ordering tiffin services as easy as a few clicks.
         </p>
       </div>
       
@@ -61,7 +61,7 @@ export default function About() {
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold mb-4">Contact Us</h2>
         <p className="text-gray-700 mb-4">
-          Have questions or feedback? We'd love to hear from you!
+          Have questions or feedback? We&apos;d love to hear from you!
         </p>
         <div className="space-y-2">
           <p className="flex items-center">

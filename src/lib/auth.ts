@@ -12,25 +12,26 @@ export const generateToken = (userId: string) => {
 };
 
 export const setAuthCookie = (token: string) => {
-  // Using synchronous cookies API
-  const cookieStore = cookies();
-  cookieStore.set('auth_token', token, {
+  // Using Response cookies API instead of direct cookie manipulation
+  const response = NextResponse.next();
+  response.cookies.set('auth_token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     maxAge: 30 * 24 * 60 * 60,
     path: '/',
     sameSite: 'strict',
   });
+  return response;
 };
 
 export const removeAuthCookie = () => {
-  const cookieStore = cookies();
-  cookieStore.delete('auth_token');
+  const response = NextResponse.next();
+  response.cookies.delete('auth_token');
+  return response;
 };
 
-export const getAuthToken = () => {
-  const cookieStore = cookies();
-  return cookieStore.get('auth_token')?.value;
+export const getAuthToken = (req: NextRequest) => {
+  return req.cookies.get('auth_token')?.value;
 };
 
 export const verifyAuth = async (req: NextRequest) => {
