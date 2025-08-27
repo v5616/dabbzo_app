@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import ReduxExample from "@/components/ReduxExample";
 
 export default function Home() {
   // Mock data for vendors
@@ -56,6 +57,11 @@ export default function Home() {
 
   return (
     <main className="container-custom py-8">
+      {/* Redux Example Section */}
+      <section className="mb-12">
+        <ReduxExample />
+      </section>
+      
       <section className="hero-section">
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-5xl font-extrabold mb-6">
