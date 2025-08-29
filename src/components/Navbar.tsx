@@ -7,7 +7,7 @@ import { useAuth } from "@/providers/AuthProvider";
 export default function Navbar() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, loading } = useAuth(); // Use the useAuth hook instead
+  const { user, loading: _loading } = useAuth(); // Use the useAuth hook instead
 
   const isActive = (path: string) => {
     return pathname === path;

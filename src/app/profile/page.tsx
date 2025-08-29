@@ -20,7 +20,7 @@ export default function ProfilePage() {
   const [newName, setNewName] = useState(user.name);
   const [referralCopied, setReferralCopied] = useState(false);
   const [showReferralSuccess, setShowReferralSuccess] = useState(false);
-  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [_profileImageFile, _setProfileImageFile] = useState<File | null>(null);
 
   const handleAddressUpdate = () => {
     setUser({...user, address: newAddress});
@@ -35,7 +35,7 @@ export default function ProfilePage() {
   const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setProfileImageFile(file);
+      _setProfileImageFile(file);
       
       // Create a preview URL for the image
       const reader = new FileReader();

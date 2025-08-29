@@ -1,14 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, use } from "react";
-import { useCartStore } from "@/store/cartStore";
+import { useCartStore, MenuItem } from "@/store/cartStore";
 
-type MenuItem = {
-  _id: string;
-  name: string;
-  price: number;
-  description: string;
-};
+// Remove the local MenuItem type definition
 
 type Vendor = {
   _id: string;
@@ -28,7 +23,7 @@ export default function VendorDetails({
   // Use params directly instead of unwrapping with React.use
   const { id } = use(params);
 
-  const [vendor, setVendor] = useState<Vendor | null>(null);
+  const [vendor, _setVendor] = useState<Vendor | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -38,37 +33,36 @@ export default function VendorDetails({
     const fetchVendor = async () => {
       try {
         // Mock API data (replace with fetch(`/api/vendors/${id}`) later)
-        const mockVendor: Vendor = {
-          _id: id,
-          name: id === "1" ? "Homely Tiffins" : "Sample Vendor",
-          description: "Authentic home-cooked meals delivered fresh daily",
-          image:
-            "https://images.unsplash.com/photo-1567337710282-00832b415979?q=80&w=1000&auto=format&fit=crop",
-          rating: 4.5,
-          address: "123 Food Street, Foodville",
-          menu: [
-            {
-              _id: "1",
-              name: "Veg Thali",
-              price: 120,
-              description: "Rice, Dal, 2 Sabzi, Roti, Salad",
-            },
-            {
-              _id: "2",
-              name: "Paneer Butter Masala",
-              price: 180,
-              description: "Paneer cooked in rich tomato gravy",
-            },
-            {
-              _id: "3",
-              name: "Rajma Chawal",
-              price: 100,
-              description: "Classic Punjabi style Rajma with rice",
-            },
-          ],
-        };
-
-        setVendor(mockVendor);
+        // const mockVendor: Vendor = {
+        //   _id: id,
+        //   name: id === "1" ? "Homely Tiffins" : "Sample Vendor",
+        //   description: "Authentic home-cooked meals delivered fresh daily",
+        //   image:
+        //     "https://images.unsplash.com/photo-1567337710282-00832b415979?q=80&w=1000&auto=format&fit=crop",
+        //   rating: 4.5,
+        //   address: "123 Food Street, Foodville",
+        //   menu: [
+        //     {
+        //       _id: "1",
+        //       name: "Veg Thali",
+        //       price: 120,
+        //       description: "Rice, Dal, 2 Sabzi, Roti, Salad",
+        //     },
+        //     {
+        //       _id: "2",
+        //       name: "Paneer Butter Masala",
+        //       price: 180,
+        //       description: "Paneer cooked in rich tomato gravy",
+        //     },
+        //     {
+        //       _id: "3",
+        //       name: "Rajma Chawal",
+        //       price: 100,
+        //       description: "Classic Punjabi style Rajma with rice",
+        //     },
+        //   ],
+        // };
+        // setVendor(mockVendor);
       } catch (err) {
         setError("Failed to load vendor details");
         console.error(err);
@@ -80,7 +74,7 @@ export default function VendorDetails({
     fetchVendor();
   }, [id]); // ✅ no hydration warning
 
-  const handleAddToCart = (item: any) => {
+  const handleAddToCart = (item: MenuItem) => {
     if (vendor) {
       addItem(vendor._id, vendor.name, item); // ✅ correct now
     }

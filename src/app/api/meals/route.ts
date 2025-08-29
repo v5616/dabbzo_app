@@ -6,16 +6,10 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const vendorId = params.id;
-
+export async function GET() {
   const { data, error } = await supabase
     .from("meals")
-    .select("*")
-    .eq("vendor_id", vendorId);
+    .select("*");
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

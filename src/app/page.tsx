@@ -10,6 +10,7 @@ export type Vendor = {
   location: string;
   description: string;
 };
+export const dynamic = "force-dynamic"; // ⬅️ important
 
 // Remove the HomeProps type and props parameter
 async function getVendors() {

@@ -35,8 +35,9 @@ export default function Login() {
       console.log("User logged in:", data.user);
       router.push("/");
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || "Login failed");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Login failed";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -64,8 +65,9 @@ export default function Login() {
 
       setOtpSent(true);
       console.log("OTP sent to:", phoneNumber);
-    } catch (err: any) {
-      setError(err.message || "Failed to send OTP");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to send OTP";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -90,8 +92,9 @@ export default function Login() {
       // Here, you can just simulate redirect after OTP screen
       router.push("/");
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || "Invalid OTP");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Invalid OTP";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
