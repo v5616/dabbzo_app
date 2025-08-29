@@ -6,7 +6,7 @@ import Link from 'next/link';
 export default function MySubscriptionsPage() {
   // In a real app, this would fetch from the API based on the logged-in user
   // For now, we'll use mock data showing no active subscriptions
-  const [activeSubscriptions, setActiveSubscriptions] = useState([]);
+  const [_activeSubscriptions, _setActiveSubscriptions] = useState([]);
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-6xl">

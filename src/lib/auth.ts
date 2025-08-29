@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { cookies } from 'next/headers';
+import { cookies as _cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import User from '@/models/User';
 
@@ -50,7 +50,7 @@ export const verifyAuth = async (req: NextRequest) => {
     }
     
     return user;
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 };

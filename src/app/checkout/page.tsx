@@ -6,7 +6,7 @@ import { useCartStore } from '@/store/cartStore';
 
 export default function Checkout() {
   const router = useRouter();
-  const { items, vendorId, vendorName, getTotalPrice, clearCart } = useCartStore();
+  const { items, vendorName, getTotalPrice, clearCart } = useCartStore();
   const [address, setAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [loading, setLoading] = useState(false);
