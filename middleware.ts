@@ -13,7 +13,7 @@ export async function middleware(req: NextRequest) {
   // Use more descriptive log
   console.log("[MIDDLEWARE] Path:", req.nextUrl.pathname, "User:", user);
 
-  const protectedRoutes = ["/history", "/orders", "/profile"];
+  const protectedRoutes = ["/history", "/my-subscriptions", "/profile"];
   if (
     !user &&
     protectedRoutes.some((route) => req.nextUrl.pathname.startsWith(route))
