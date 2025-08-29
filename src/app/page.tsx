@@ -1,7 +1,8 @@
+import VendorsList from "@/components/VendorsList/VendorsList";
 import Link from "next/link";
 import React from "react";
 
-type Vendor = {
+export type Vendor = {
   id: number;
   name: string;
   image: string;
@@ -28,7 +29,6 @@ async function getVendors() {
 export default async function Home() {
   // Fetch data directly in the component
   const vendors = await getVendors();
-
   return (
     <main className="container-custom py-8">
       <section className="hero-section">
@@ -77,29 +77,8 @@ export default async function Home() {
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {vendors?.map((vendor: any) => (
-            <div key={vendor.id} className="card group">
-              <div className="relative h-48 overflow-hidden rounded-t-xl">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img
-                  src={vendor.image}
-                  alt={vendor.name}
-                  className="vendor-card-image"
-                />
-                <div className="absolute bottom-3 left-3 z-20">
-                  <div className="rating-badge">{vendor.rating}</div>
-                </div>
-              </div>
-              <div className="p-5">
-                <h3 className="text-xl font-bold mb-2 group-hover:text-red-500 transition-colors">
-                  {vendor.name}
-                </h3>
-                <p className="text-gray-600 mb-3">{vendor.description}</p>
-                <div className="flex items-center text-gray-500 text-sm">
-                  {vendor.location}
-                </div>
-              </div>
-            </div>
+          {vendors?.map((vendor: Vendor) => (
+            <VendorsList vendor={vendor} key={vendor.id} />
           ))}
         </div>
       </section>
