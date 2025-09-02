@@ -1,10 +1,8 @@
-"use client";
+import React from "react";
+import VendorPageContent from "@/components/VendorPageContent";
+import { MenuItem } from "@/store/cartStore";
 
-import React, { useState, useEffect, use } from "react";
-import { useCartStore, MenuItem } from "@/store/cartStore";
-
-// Remove the local MenuItem type definition
-
+// This type should align with the one in VendorPageContent
 type Vendor = {
   _id: string;
   name: string;
@@ -15,131 +13,60 @@ type Vendor = {
   menu: MenuItem[];
 };
 
-export default function VendorDetails({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  // Use params directly instead of unwrapping with React.use
-  const { id } = use(params);
+async function getVendor(id: string): Promise<Vendor | null> {
+  try {
+    // On the server, we need to use the absolute URL for fetch, or call DB directly.
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/meals/${id}`, {
+      cache: "no-store",
+    });
 
-  const [vendor, _setVendor] = useState<Vendor | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+    if (!res.ok) {
+      console.error(`Failed to fetch meals: ${res.statusText}`);
+      return null;
+    }
 
-  const { addItem, items } = useCartStore();
+    const data = await res.json();
 
-  useEffect(() => {
-    const fetchVendor = async () => {
-      try {
-        // Mock API data (replace with fetch(`/api/vendors/${id}`) later)
-        // const mockVendor: Vendor = {
-        //   _id: id,
-        //   name: id === "1" ? "Homely Tiffins" : "Sample Vendor",
-        //   description: "Authentic home-cooked meals delivered fresh daily",
-        //   image:
-        //     "https://images.unsplash.com/photo-1567337710282-00832b415979?q=80&w=1000&auto=format&fit=crop",
-        //   rating: 4.5,
-        //   address: "123 Food Street, Foodville",
-        //   menu: [
-        //     {
-        //       _id: "1",
-        //       name: "Veg Thali",
-        //       price: 120,
-        //       description: "Rice, Dal, 2 Sabzi, Roti, Salad",
-        //     },
-        //     {
-        //       _id: "2",
-        //       name: "Paneer Butter Masala",
-        //       price: 180,
-        //       description: "Paneer cooked in rich tomato gravy",
-        //     },
-        //     {
-        //       _id: "3",
-        //       name: "Rajma Chawal",
-        //       price: 100,
-        //       description: "Classic Punjabi style Rajma with rice",
-        //     },
-        //   ],
-        // };
-        // setVendor(mockVendor);
-      } catch (err) {
-        setError("Failed to load vendor details");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+    if (data.error) {
+      console.error(`API error: ${data.error}`);
+      return null;
+    }
+
+    // Mock vendor details and combine with fetched menu
+    // In a real app, you would fetch vendor details from your database as well.
+    const vendorData: Vendor = {
+      _id: id, // Use the actual vendor ID
+      name: "Pizza Palace", // This would be fetched from the DB
+      description: "Best pizzas in town with fresh ingredients.",
+      image:
+        "https://images.unsplash.com/photo-1594007654729-407eedc4f332?w=800&h=600&fit=crop",
+      rating: 4.5,
+      address: "123 Main Street, Mohali",
+      menu: data.meals || [], // Ensure menu is always an array
     };
 
-    fetchVendor();
-  }, [id]); // ✅ no hydration warning
+    return vendorData;
+  } catch (error) {
+    console.error("An unexpected error occurred:", error);
+    return null;
+  }
+}
 
-  const handleAddToCart = (item: MenuItem) => {
-    if (vendor) {
-      addItem(vendor._id, vendor.name, item); // ✅ correct now
-    }
-  };
+export default async function VendorDetailsPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const vendor = await getVendor(params.id);
 
-  if (loading) return <div className="p-8 text-center">Loading vendor...</div>;
-  if (error) return <div className="p-8 text-red-500 text-center">{error}</div>;
-  if (!vendor) return <div className="p-8 text-center">Vendor not found</div>;
-
-  return (
-    <div className="container-custom py-8">
-      {/* Vendor Info */}
-      <div className="grid md:grid-cols-2 gap-8">
-        <div>
-          <img
-            src={vendor.image}
-            alt={vendor.name}
-            className="rounded-xl shadow-lg w-full h-[400px] object-cover"
-          />
-        </div>
-
-        <div>
-          <h1 className="text-3xl font-bold mb-4">{vendor.name}</h1>
-          <p className="text-gray-600 mb-4">{vendor.description}</p>
-          <p className="mb-2">⭐ {vendor.rating} / 5</p>
-          <p className="text-gray-600 mb-6">{vendor.address}</p>
-        </div>
+  if (!vendor) {
+    return (
+      <div className="p-8 text-center text-red-500">
+        Failed to load vendor data.
       </div>
+    );
+  }
 
-      {/* Menu Section */}
-      <h2 className="text-2xl font-semibold mt-12 mb-6">Menu</h2>
-      <div className="grid md:grid-cols-3 gap-6">
-        {vendor.menu.map((item) => (
-          <div key={item._id} className="border rounded-lg p-4 shadow-sm">
-            <h3 className="text-lg font-semibold mb-2">{item.name}</h3>
-            <p className="text-gray-600 mb-2">{item.description}</p>
-            <p className="font-bold mb-4">₹{item.price}</p>
-            <button
-              onClick={() => handleAddToCart(item)}
-              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition"
-            >
-              Add to Cart
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* Cart Section */}
-      <div className="mt-12 p-6 bg-gray-50 rounded-xl shadow">
-        <h2 className="text-xl font-semibold mb-4">Your Cart</h2>
-        {items.length === 0 ? (
-          <p className="text-gray-600">Your cart is empty</p>
-        ) : (
-          <ul className="space-y-2">
-            {items.map((item) => (
-              <li key={item._id} className="flex justify-between">
-                <span>
-                  {item.name} - ₹{item.price}
-                </span>
-                <span className="text-gray-500">x{item.quantity}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
-  );
+  return <VendorPageContent vendor={vendor} />;
 }

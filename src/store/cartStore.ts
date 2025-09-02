@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface MenuItem {
   _id: string;
@@ -34,18 +34,20 @@ export const useCartStore = create<CartStore>()(
       vendorId: null,
       vendorName: null,
       items: [],
-      
+
       addItem: (vendorId, vendorName, item) => {
         const { items, vendorId: currentVendorId } = get();
-        
+
         // If adding from a different vendor, clear the cart first
         if (currentVendorId && currentVendorId !== vendorId) {
           set({ items: [], vendorId, vendorName });
         }
-        
+
         // Check if item already exists in cart
-        const existingItem = items.find((cartItem) => cartItem._id === item._id);
-        
+        const existingItem = items.find(
+          (cartItem) => cartItem._id === item._id
+        );
+
         if (existingItem) {
           // Update quantity if item exists
           set({
@@ -60,28 +62,36 @@ export const useCartStore = create<CartStore>()(
         } else {
           // Add new item
           set({
-            items: [...items, { _id: item._id, name: item.name, price: item.price, quantity: 1 }],
+            items: [
+              ...items,
+              {
+                _id: item._id,
+                name: item.name,
+                price: item.price,
+                quantity: 1,
+              },
+            ],
             vendorId,
             vendorName,
           });
         }
       },
-      
+
       removeItem: (itemId) => {
         const { items } = get();
         set({
           items: items.filter((item) => item._id !== itemId),
         });
-        
+
         // If cart is empty, reset vendor info
         if (items.length === 1) {
           set({ vendorId: null, vendorName: null });
         }
       },
-      
+
       updateQuantity: (itemId, quantity) => {
         const { items } = get();
-        
+
         if (quantity <= 0) {
           set({
             items: items.filter((item) => item._id !== itemId),
@@ -94,23 +104,26 @@ export const useCartStore = create<CartStore>()(
           });
         }
       },
-      
+
       clearCart: () => {
         set({ items: [], vendorId: null, vendorName: null });
       },
-      
+
       getTotalItems: () => {
         const { items } = get();
         return items.reduce((total, item) => total + item.quantity, 0);
       },
-      
+
       getTotalPrice: () => {
         const { items } = get();
-        return items.reduce((total, item) => total + item.price * item.quantity, 0);
+        return items.reduce(
+          (total, item) => total + item.price * item.quantity,
+          0
+        );
       },
     }),
     {
-      name: 'dabbzo-cart',
+      name: "dabbzo-cart",
     }
   )
 );
