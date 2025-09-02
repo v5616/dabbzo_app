@@ -13,8 +13,6 @@ export default function Navbar() {
     return pathname === path;
   };
 
-  console.log(user, "useruser"); // This will now show the user data
-
   // Remove the duplicate authentication logic
   // No need for the useEffect and supabase client here
 
