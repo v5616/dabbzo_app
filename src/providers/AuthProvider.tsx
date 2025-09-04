@@ -25,27 +25,50 @@ export function AuthProvider({
 }): React.ReactElement {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   const signOut = async () => {
     await supabase.auth.signOut();
   };
 
   useEffect(() => {
-    // Check user on first load
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-      setLoading(false);
-    });
 
-    // Listen for changes (login/logout)
+    let isMounted = true;
+
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (isMounted) {
+          setUser(session?.user ?? null);
+          setLoading(false);
+          setMounted(true);
+        }
+      } catch (error) {
+        console.error('Error getting initial session:', error);
+        if (isMounted) {
+          setUser(null);
+          setLoading(false);
+          setMounted(true);
+        }
+      }
+    };
+
+    getInitialSession();
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (isMounted) {
+        setUser(session?.user ?? null);
+        setLoading(false);
+        setMounted(true);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (

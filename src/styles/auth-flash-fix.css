@@ -1,0 +1,29 @@
+/* Prevent authentication flash during hydration */
+.auth-loading {
+  visibility: hidden;
+}
+
+.auth-loaded {
+  visibility: visible;
+}
+
+/* Smooth transition for auth state changes */
+.auth-transition {
+  transition: opacity 0.2s ease-in-out;
+}
+
+.auth-transition.loading {
+  opacity: 0.7;
+}
+
+.auth-transition.loaded {
+  opacity: 1;
+}
+
+/* Prevent layout shift during auth loading */
+.auth-container {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -1,13 +1,18 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 
 export default function Navbar() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user } = useAuth(); // Use the useAuth hook instead
+  const [mounted, setMounted] = useState(false);
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isActive = (path: string) => {
     return pathname === path;
@@ -98,14 +103,22 @@ export default function Navbar() {
                 <span>Profile</span>
               </div>
             </Link>
-            {!user && (
-              <Link
-                href="/login"
-                className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-medium py-2 px-4 rounded-full transition-all duration-300 shadow-md hover:shadow-lg"
-              >
-                Login
-              </Link>
-            )}
+            <div className="min-w-[64px] h-8 flex items-center justify-center">
+              {!mounted || loading ? (
+                <div className="w-16 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+              ) : user ? (
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <span>Welcome back!</span>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-medium py-2 px-4 rounded-full transition-all duration-300 shadow-md hover:shadow-lg whitespace-nowrap"
+                >
+                  Login
+                </Link>
+              )}
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
@@ -211,15 +224,23 @@ export default function Navbar() {
             >
               Profile
             </Link>
-            {!user && (
-              <Link
-                href="/login"
-                className="block w-full text-center bg-gradient-to-r from-red-500 to-orange-500 text-white font-medium py-2 px-4 rounded-md"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Login
-              </Link>
-            )}
+            <div className="w-full min-h-[40px] flex items-center">
+              {!mounted || loading ? (
+                <div className="w-full h-10 bg-gray-200 rounded-md animate-pulse"></div>
+              ) : user ? (
+                <div className="text-center text-sm text-gray-600 py-2">
+                  Welcome back!
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="block w-full text-center bg-gradient-to-r from-red-500 to-orange-500 text-white font-medium py-2 px-4 rounded-md"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Login
+                </Link>
+              )}
+            </div>
           </div>
         )}
       </div>
