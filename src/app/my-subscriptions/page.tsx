@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+// import { useState } from 'react'; // Will be used when API is implemented
 import Link from 'next/link';
 
 export default function MySubscriptionsPage() {
   // In a real app, this would fetch from the API based on the logged-in user
   // For now, we'll use mock data showing no active subscriptions
-  const [_activeSubscriptions, _setActiveSubscriptions] = useState([]);
+  // Mock data - will be replaced with actual API call
+  // const [activeSubscriptions, setActiveSubscriptions] = useState([]);
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-6xl">

@@ -44,7 +44,8 @@ export const loginUser = createAsyncThunk(
       }
       
       return data.user;
-    } catch (_error) {
+    } catch (error) {
+      console.error('Login error:', error);
       return rejectWithValue('An error occurred during login');
     }
   }

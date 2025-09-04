@@ -7,13 +7,11 @@ import { useAuth } from "@/providers/AuthProvider";
 export default function Navbar() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, loading: _loading } = useAuth(); // Use the useAuth hook instead
+  const { user } = useAuth(); // Use the useAuth hook instead
 
   const isActive = (path: string) => {
     return pathname === path;
   };
-
-  console.log(user, "useruser"); // This will now show the user data
 
   // Remove the duplicate authentication logic
   // No need for the useEffect and supabase client here

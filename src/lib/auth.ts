@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { cookies as _cookies } from 'next/headers';
+// import { cookies } from 'next/headers'; // Will be used for server-side auth
 import { NextRequest, NextResponse } from 'next/server';
 import User from '@/models/User';
 
@@ -50,7 +50,8 @@ export const verifyAuth = async (req: NextRequest) => {
     }
     
     return user;
-  } catch (_error) {
+  } catch (error) {
+    console.error('Auth verification error:', error);
     return null;
   }
 };
