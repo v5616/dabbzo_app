@@ -9,7 +9,7 @@ export default function CheckoutSuccess() {
   
   useEffect(() => {
     // If user refreshes this page, redirect to home
-    const handleBeforeUnload = (_e: BeforeUnloadEvent) => {
+    const handleBeforeUnload = () => {
       router.push('/');
     };
     

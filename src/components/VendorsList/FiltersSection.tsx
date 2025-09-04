@@ -1,8 +1,20 @@
 import Link from "next/link";
 import React from "react";
 
+interface Vendor {
+  _id: string;
+  name: string;
+  description: string;
+  image: string;
+  rating: number;
+  address: string;
+  cuisineType: string;
+  deliveryTime: string;
+  minOrder: number;
+}
+
 type Props = {
-  filteredVendors: any[];
+  filteredVendors: Vendor[];
 };
 
 const FiltersSection = ({ filteredVendors }: Props) => {

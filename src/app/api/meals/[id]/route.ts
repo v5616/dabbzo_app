@@ -8,9 +8,9 @@ const supabase = createClient(
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const vendorId = params.id;
+  const { id: vendorId } = await params;
 
   const { data, error } = await supabase
     .from("meals")
