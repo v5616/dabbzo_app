@@ -1,15 +1,46 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cartStore';
+import { useAuth } from '@/providers/AuthProvider';
 
 export default function CartSidebar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { items, vendorName, removeItem, updateQuantity, getTotalPrice, clearCart } = useCartStore();
+  const { user } = useAuth();
+  const { 
+    items, 
+    vendorName, 
+    removeItem, 
+    updateQuantity, 
+    getTotalPrice, 
+    clearCart,
+    loadCartFromBackend,
+    isLoading,
+    error
+  } = useCartStore();
+  
+  // Load cart from backend when user logs in
+  useEffect(() => {
+    if (user?.id) {
+      loadCartFromBackend(user.id);
+    }
+  }, [user?.id, loadCartFromBackend]);
   
   const toggleCart = () => {
     setIsOpen(!isOpen);
+  };
+  
+  const handleRemoveItem = async (itemId: string) => {
+    await removeItem(itemId, user?.id);
+  };
+  
+  const handleUpdateQuantity = async (itemId: string, quantity: number) => {
+    await updateQuantity(itemId, quantity, user?.id);
+  };
+  
+  const handleClearCart = async () => {
+    await clearCart(user?.id);
   };
   
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -77,6 +108,18 @@ export default function CartSidebar() {
           
           {/* Cart Content */}
           <div className="flex-grow overflow-y-auto p-4">
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                {error}
+              </div>
+            )}
+            
+            {isLoading && (
+              <div className="flex justify-center items-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+              </div>
+            )}
+            
             {items.length === 0 ? (
               <div className="text-center py-8">
                 <svg
@@ -120,21 +163,24 @@ export default function CartSidebar() {
                     
                     <div className="flex items-center">
                       <button
-                        onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                        onClick={() => handleUpdateQuantity(item._id, item.quantity - 1)}
                         className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full"
+                        disabled={isLoading}
                       >
                         -
                       </button>
                       <span className="mx-2 w-6 text-center">{item.quantity}</span>
                       <button
-                        onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                        onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)}
                         className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full"
+                        disabled={isLoading}
                       >
                         +
                       </button>
                       <button
-                        onClick={() => removeItem(item._id)}
+                        onClick={() => handleRemoveItem(item._id)}
                         className="ml-4 text-red-500 hover:text-red-600"
+                        disabled={isLoading}
                       >
                         <svg
                           className="h-5 w-5"
@@ -174,8 +220,9 @@ export default function CartSidebar() {
                   Proceed to Checkout
                 </Link>
                 <button
-                  onClick={clearCart}
+                  onClick={handleClearCart}
                   className="btn-secondary w-full"
+                  disabled={isLoading}
                 >
                   Clear Cart
                 </button>

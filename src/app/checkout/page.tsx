@@ -3,9 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/cartStore';
+import { useAuth } from '@/providers/AuthProvider';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
-export default function Checkout() {
+function CheckoutContent() {
   const router = useRouter();
+  const { user } = useAuth();
   const { items, vendorName, getTotalPrice, clearCart } = useCartStore();
   const [address, setAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
@@ -32,7 +35,7 @@ export default function Checkout() {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Clear cart after successful order
-      clearCart();
+      await clearCart(user?.id);
       
       // Redirect to success page
       router.push('/checkout/success');
@@ -151,5 +154,13 @@ export default function Checkout() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Checkout() {
+  return (
+    <ProtectedRoute>
+      <CheckoutContent />
+    </ProtectedRoute>
   );
 }

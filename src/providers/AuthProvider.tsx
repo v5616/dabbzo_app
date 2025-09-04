@@ -13,6 +13,7 @@ import type { User } from "@supabase/supabase-js";
 type AuthContextType = {
   user: User | null;
   loading: boolean;
+  signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,6 +25,10 @@ export function AuthProvider({
 }): React.ReactElement {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   useEffect(() => {
     // Check user on first load
@@ -44,7 +49,7 @@ export function AuthProvider({
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 interface OrderItem {
   name: string;
@@ -18,7 +19,7 @@ interface Order {
   createdAt: string;
 }
 
-export default function OrderHistory() {
+function OrderHistoryPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -183,5 +184,13 @@ export default function OrderHistory() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ProtectedOrderHistoryPage() {
+  return (
+    <ProtectedRoute>
+      <OrderHistoryPage />
+    </ProtectedRoute>
   );
 }

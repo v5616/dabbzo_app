@@ -3,16 +3,20 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { authHelpers } from '@/lib/auth-helpers';
+import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 
 export default function Signup() {
   const router = useRouter();
   const [name, setName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // Redirect if already authenticated
+  useAuthRedirect({ requireAuth: false, redirectIfAuthenticated: true });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,129 +31,106 @@ export default function Signup() {
     }
 
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, phoneNumber, password, referralCode }),
+      const { data, error } = await authHelpers.signUp(email, password, {
+        full_name: name,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Signup failed');
+      
+      if (error) {
+        setError(error.message);
+        return;
       }
 
-      // Redirect to login page on successful signup
-      router.push('/login');
+      if (data.user) {
+        // Show success message and redirect
+        alert('Account created successfully! Please check your email to verify your account.');
+        router.push('/login');
+      }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      const errorMessage = err instanceof Error ? err.message : 'Signup failed';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">Create Account</h1>
-      
+    <div className="max-w-md mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        Sign Up
+      </h1>
+
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Full Name
           </label>
           <input
-            id="name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="input-field"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="Enter your full name"
             required
           />
         </div>
-        
         <div>
-          <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
-            Phone Number
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Email
           </label>
           <input
-            id="phoneNumber"
-            type="tel"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            className="input-field"
-            placeholder="Enter your phone number"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            placeholder="Enter your email"
             required
           />
         </div>
-        
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Password
           </label>
           <input
-            id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="input-field"
-            placeholder="Create a password (min. 6 characters)"
-            minLength={6}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            placeholder="Enter your password"
             required
           />
         </div>
-        
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Confirm Password
           </label>
           <input
-            id="confirmPassword"
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="input-field"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="Confirm your password"
-            minLength={6}
             required
           />
         </div>
-        
-        <div>
-          <label htmlFor="referralCode" className="block text-sm font-medium text-gray-700 mb-1">
-            Referral Code (Optional)
-          </label>
-          <input
-            id="referralCode"
-            type="text"
-            value={referralCode}
-            onChange={(e) => setReferralCode(e.target.value)}
-            className="input-field"
-            placeholder="Enter referral code if you have one"
-          />
-        </div>
-        
         <button
           type="submit"
-          className="btn-primary w-full"
           disabled={loading}
+          className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90 disabled:opacity-50"
         >
           {loading ? 'Creating Account...' : 'Sign Up'}
         </button>
       </form>
-      
+
       <div className="mt-6 text-center">
-        <p>
+        <p className="text-gray-600">
           Already have an account?{' '}
-          <Link href="/login" className="text-red-500 hover:underline">
+          <Link href="/login" className="text-primary hover:underline">
             Login
           </Link>
         </p>

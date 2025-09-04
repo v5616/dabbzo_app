@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
-export default function CheckoutSuccess() {
+function CheckoutSuccess() {
   const router = useRouter();
   
   useEffect(() => {
@@ -56,5 +57,13 @@ export default function CheckoutSuccess() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProtectedCheckoutSuccess() {
+  return (
+    <ProtectedRoute>
+      <CheckoutSuccess />
+    </ProtectedRoute>
   );
 }
