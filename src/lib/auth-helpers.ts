@@ -11,7 +11,11 @@ export interface AuthUser {
 
 export const authHelpers = {
   // Sign up with email and password
-  async signUp(email: string, password: string, metadata?: { full_name?: string }) {
+  async signUp(
+    email: string,
+    password: string,
+    metadata?: { full_name?: string }
+  ) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -34,14 +38,13 @@ export const authHelpers = {
   // Sign in with Google OAuth
   async signInWithGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`
       }
     });
     return { data, error };
   },
-
   // Sign out
   async signOut() {
     const { error } = await supabase.auth.signOut();
@@ -50,7 +53,10 @@ export const authHelpers = {
 
   // Get current user
   async getCurrentUser() {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
     return { user, error };
   },
 
@@ -79,7 +85,10 @@ export const authHelpers = {
 
   // Get user session
   async getSession() {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
     return { session, error };
   },
 };

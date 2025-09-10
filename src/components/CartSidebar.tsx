@@ -7,6 +7,8 @@ import { useAuth } from "@/providers/AuthProvider";
 
 export default function CartSidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const { user } = useAuth();
   const {
     items,
@@ -14,6 +16,7 @@ export default function CartSidebar() {
     removeItem,
     updateQuantity,
     getTotalPrice,
+    getTotalItems,
     clearCart,
     loadCartFromBackend,
     isLoading,
@@ -27,31 +30,46 @@ export default function CartSidebar() {
     }
   }, [user?.id, loadCartFromBackend]);
 
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   const toggleCart = () => {
+    if (isAnimating) return;
+    setIsAnimating(true);
     setIsOpen(!isOpen);
+    setTimeout(() => setIsAnimating(false), 300);
   };
 
   const handleRemoveItem = async (itemId: string) => {
+    if (isLoading) return;
     await removeItem(itemId, user?.id);
   };
 
   const handleUpdateQuantity = async (itemId: string, quantity: number) => {
+    if (isLoading || quantity < 0) return;
     await updateQuantity(itemId, quantity, user?.id);
   };
 
   const handleClearCart = async () => {
-    await clearCart(user?.id);
+    if (isLoading) return;
+    if (window.confirm('Are you sure you want to clear your cart?')) {
+      await clearCart(user?.id);
+    }
   };
 
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItems = getTotalItems();
   const totalPrice = getTotalPrice();
 
   return (
     <>
-      {/* Cart Button */}
+      {/* Enhanced Cart Button */}
       <button
         onClick={toggleCart}
-        className="fixed bottom-6 right-6 bg-red-500 text-white rounded-full p-4 shadow-lg hover:bg-red-600 transition-colors z-50"
+        disabled={isAnimating}
+        className={`fixed bottom-6 right-6 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full p-4 shadow-xl hover:shadow-2xl hover:from-red-600 hover:to-red-700 transition-all duration-300 z-50 transform hover:scale-105 ${
+          isAnimating ? 'scale-95' : ''
+        } ${totalItems > 0 ? 'animate-pulse' : ''}`}
       >
         <div className="relative">
           <svg
@@ -68,27 +86,33 @@ export default function CartSidebar() {
               d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
             />
           </svg>
-          {totalItems > 0 && (
-            <span className="absolute -top-2 -right-2 bg-white text-red-500 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-              {totalItems}
+          {hasMounted && totalItems > 0 && (
+            <span className="absolute -top-2 -right-2 bg-white text-red-500 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-md animate-bounce">
+              {totalItems > 99 ? '99+' : totalItems}
             </span>
           )}
         </div>
       </button>
 
-      {/* Cart Sidebar */}
+      {/* Enhanced Cart Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-full md:w-96 bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-full w-full md:w-96 bg-white shadow-2xl z-50 transform transition-all duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Cart Header */}
-          <div className="p-4 border-b flex justify-between items-center">
-            <h2 className="text-xl font-bold">Your Cart</h2>
+          {/* Enhanced Cart Header */}
+          <div className="p-6 bg-gradient-to-r from-red-500 to-red-600 text-white flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-bold">Your Cart</h2>
+              {hasMounted && totalItems > 0 && (
+                <p className="text-red-100 text-sm">{totalItems} item{totalItems !== 1 ? 's' : ''}</p>
+              )}
+
+            </div>
             <button
               onClick={toggleCart}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-white hover:text-red-200 transition-colors p-2 rounded-full hover:bg-white/10"
             >
               <svg
                 className="h-6 w-6"
@@ -120,7 +144,11 @@ export default function CartSidebar() {
               </div>
             )}
 
-            {items.length === 0 ? (
+            {!hasMounted ? (
+              <div className="flex justify-center items-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+              </div>
+            ) : items.length === 0 ? (
               <div className="text-center py-8">
                 <svg
                   className="mx-auto h-12 w-12 text-gray-400"
@@ -211,7 +239,7 @@ export default function CartSidebar() {
           </div>
 
           {/* Cart Footer */}
-          {items.length > 0 && (
+          {hasMounted && items.length > 0 && (
             <div className="p-4 border-t">
               <div className="flex justify-between mb-4">
                 <span className="font-medium">Total:</span>

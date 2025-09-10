@@ -23,7 +23,7 @@ interface VendorPageContentProps {
 
 export default function VendorPageContent({ vendor }: VendorPageContentProps) {
   const { user } = useAuth();
-  const { addItem, items, isLoading } = useCartStore();
+  const { addItem, isLoading } = useCartStore();
 
   const handleAddToCart = async (item: MenuItem) => {
     if (vendor) {

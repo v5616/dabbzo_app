@@ -4,6 +4,7 @@ import { MenuItem } from "@/store/cartStore";
 
 // This type should align with the one in VendorPageContent
 type Vendor = {
+  id: string;
   _id: string;
   name: string;
   description: string;
@@ -36,6 +37,7 @@ async function getVendor(id: string): Promise<Vendor | null> {
     // Mock vendor details and combine with fetched menu
     // In a real app, you would fetch vendor details from your database as well.
     const vendorData: Vendor = {
+      id: id, // Use the actual vendor ID
       _id: id, // Use the actual vendor ID
       name: "Pizza Palace", // This would be fetched from the DB
       description: "Best pizzas in town with fresh ingredients.",

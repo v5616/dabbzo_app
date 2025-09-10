@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { authHelpers } from "@/lib/auth-helpers";
+import { useToast } from "@/hooks/useToast";
+import Toast from "@/components/Toast";
 import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
 export default function Login() {
@@ -12,6 +14,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { toast, showToast, hideToast } = useToast();
   
   // Redirect if already authenticated
   useAuthRedirect({ requireAuth: false, redirectIfAuthenticated: true });
@@ -30,7 +33,10 @@ export default function Login() {
       }
 
       if (data.user) {
-        router.push("/"); // Redirect to home page
+        showToast('Login successful! Welcome back.', 'success');
+        setTimeout(() => {
+          router.push("/");
+        }, 1500);
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Login failed";
@@ -59,10 +65,17 @@ export default function Login() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-        Login
-      </h1>
+    <>
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
+      <div className="max-w-md mx-auto p-6">
+        <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          Login
+        </h1>
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -136,6 +149,7 @@ export default function Login() {
           </Link>
         </p>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

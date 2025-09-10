@@ -6,7 +6,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/providers/AuthProvider";
 
 function ProfilePage() {
-  const { user, loading, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   // Mock user data - in a real app, this would come from authentication context
   const [userState, setUser] = useState({
     name: "John Doe",
