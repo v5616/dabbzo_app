@@ -10,7 +10,7 @@ export interface MenuItem {
 }
 
 export interface CartItem {
-  _id: string;
+  id: string;
   name: string;
   price: number;
   quantity: number;
@@ -23,9 +23,18 @@ interface CartStore {
   items: CartItem[];
   isLoading: boolean;
   error: string | null;
-  addItem: (vendorId: string, vendorName: string, item: MenuItem, userId?: string) => Promise<void>;
+  addItem: (
+    vendorId: string,
+    vendorName: string,
+    item: MenuItem,
+    userId?: string
+  ) => Promise<void>;
   removeItem: (itemId: string, userId?: string) => Promise<void>;
-  updateQuantity: (itemId: string, quantity: number, userId?: string) => Promise<void>;
+  updateQuantity: (
+    itemId: string,
+    quantity: number,
+    userId?: string
+  ) => Promise<void>;
   clearCart: (userId?: string) => Promise<void>;
   loadCartFromBackend: (userId: string) => Promise<void>;
   syncWithBackend: (userId: string) => Promise<void>;
@@ -57,7 +66,7 @@ export const useCartStore = create<CartStore>()(
 
           // Check if item already exists in cart
           const existingItem = items.find(
-            (cartItem) => cartItem._id === item._id
+            (cartItem) => cartItem.id === item._id
           );
 
           if (existingItem) {
@@ -65,19 +74,19 @@ export const useCartStore = create<CartStore>()(
             const newQuantity = existingItem.quantity + 1;
             if (userId && existingItem.cart_id) {
               // Update in backend
-              await fetch('/api/cart', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+              await fetch("/api/cart", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   cart_id: existingItem.cart_id,
-                  quantity: newQuantity
-                })
+                  quantity: newQuantity,
+                }),
               });
             }
 
             set({
               items: items.map((cartItem) =>
-                cartItem._id === item._id
+                cartItem.id === item._id
                   ? { ...cartItem, quantity: newQuantity }
                   : cartItem
               ),
@@ -89,14 +98,14 @@ export const useCartStore = create<CartStore>()(
             let cart_id;
             if (userId) {
               // Add to backend
-              const response = await fetch('/api/cart', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+              const response = await fetch("/api/cart", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   user_id: userId,
                   meal_id: item._id,
-                  quantity: 1
-                })
+                  quantity: 1,
+                }),
               });
               const result = await response.json();
               cart_id = result.cart_id;
@@ -106,7 +115,7 @@ export const useCartStore = create<CartStore>()(
               items: [
                 ...items,
                 {
-                  _id: item._id,
+                  id: item._id,
                   name: item.name,
                   price: item.price,
                   quantity: 1,
@@ -118,7 +127,10 @@ export const useCartStore = create<CartStore>()(
             });
           }
         } catch (error) {
-          set({ error: error instanceof Error ? error.message : 'Failed to add item' });
+          set({
+            error:
+              error instanceof Error ? error.message : "Failed to add item",
+          });
         } finally {
           set({ isLoading: false });
         }
@@ -129,17 +141,17 @@ export const useCartStore = create<CartStore>()(
         set({ isLoading: true, error: null });
 
         try {
-          const itemToRemove = items.find(item => item._id === itemId);
-          
+          const itemToRemove = items.find((item) => item.id === itemId);
+
           if (userId && itemToRemove?.cart_id) {
             // Remove from backend
             await fetch(`/api/cart?cart_id=${itemToRemove.cart_id}`, {
-              method: 'DELETE'
+              method: "DELETE",
             });
           }
 
           set({
-            items: items.filter((item) => item._id !== itemId),
+            items: items.filter((item) => item.id !== itemId),
           });
 
           // If cart is empty, reset vendor info
@@ -147,7 +159,10 @@ export const useCartStore = create<CartStore>()(
             set({ vendorId: null, vendorName: null });
           }
         } catch (error) {
-          set({ error: error instanceof Error ? error.message : 'Failed to remove item' });
+          set({
+            error:
+              error instanceof Error ? error.message : "Failed to remove item",
+          });
         } finally {
           set({ isLoading: false });
         }
@@ -158,7 +173,7 @@ export const useCartStore = create<CartStore>()(
         set({ isLoading: true, error: null });
 
         try {
-          const itemToUpdate = items.find(item => item._id === itemId);
+          const itemToUpdate = items.find((item) => item.id === itemId);
 
           if (quantity <= 0) {
             await get().removeItem(itemId, userId);
@@ -167,23 +182,28 @@ export const useCartStore = create<CartStore>()(
 
           if (userId && itemToUpdate?.cart_id) {
             // Update in backend
-            await fetch('/api/cart', {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
+            await fetch("/api/cart", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 cart_id: itemToUpdate.cart_id,
-                quantity
-              })
+                quantity,
+              }),
             });
           }
 
           set({
             items: items.map((item) =>
-              item._id === itemId ? { ...item, quantity } : item
+              item.id === itemId ? { ...item, quantity } : item
             ),
           });
         } catch (error) {
-          set({ error: error instanceof Error ? error.message : 'Failed to update quantity' });
+          set({
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to update quantity",
+          });
         } finally {
           set({ isLoading: false });
         }
@@ -197,15 +217,22 @@ export const useCartStore = create<CartStore>()(
           if (userId) {
             // Clear from backend
             await Promise.all(
-              items.map(item => 
-                item.cart_id ? fetch(`/api/cart?cart_id=${item.cart_id}`, { method: 'DELETE' }) : Promise.resolve()
+              items.map((item) =>
+                item.cart_id
+                  ? fetch(`/api/cart?cart_id=${item.cart_id}`, {
+                      method: "DELETE",
+                    })
+                  : Promise.resolve()
               )
             );
           }
 
           set({ items: [], vendorId: null, vendorName: null });
         } catch (error) {
-          set({ error: error instanceof Error ? error.message : 'Failed to clear cart' });
+          set({
+            error:
+              error instanceof Error ? error.message : "Failed to clear cart",
+          });
         } finally {
           set({ isLoading: false });
         }
@@ -219,20 +246,29 @@ export const useCartStore = create<CartStore>()(
           const cartData = await response.json();
 
           if (response.ok) {
-            const items: CartItem[] = cartData.map((item: { cart_id: string; quantity: number; meals: { id: string; name: string; price: number } }) => ({
-              _id: item.meals.id,
-              name: item.meals.name,
-              price: item.meals.price,
-              quantity: item.quantity,
-              cart_id: item.cart_id
-            }));
+            const items: CartItem[] = cartData.map(
+              (item: {
+                cart_id: string;
+                quantity: number;
+                meals: { id: string; name: string; price: number };
+              }) => ({
+                _id: item.meals.id,
+                name: item.meals.name,
+                price: item.meals.price,
+                quantity: item.quantity,
+                cart_id: item.cart_id,
+              })
+            );
 
             set({ items });
           } else {
-            set({ error: cartData.error || 'Failed to load cart' });
+            set({ error: cartData.error || "Failed to load cart" });
           }
         } catch (error) {
-          set({ error: error instanceof Error ? error.message : 'Failed to load cart' });
+          set({
+            error:
+              error instanceof Error ? error.message : "Failed to load cart",
+          });
         } finally {
           set({ isLoading: false });
         }

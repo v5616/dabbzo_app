@@ -1,51 +1,51 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useCartStore } from '@/store/cartStore';
-import { useAuth } from '@/providers/AuthProvider';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useCartStore } from "@/store/cartStore";
+import { useAuth } from "@/providers/AuthProvider";
 
 export default function CartSidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
-  const { 
-    items, 
-    vendorName, 
-    removeItem, 
-    updateQuantity, 
-    getTotalPrice, 
+  const {
+    items,
+    vendorName,
+    removeItem,
+    updateQuantity,
+    getTotalPrice,
     clearCart,
     loadCartFromBackend,
     isLoading,
-    error
+    error,
   } = useCartStore();
-  
+
   // Load cart from backend when user logs in
   useEffect(() => {
     if (user?.id) {
       loadCartFromBackend(user.id);
     }
   }, [user?.id, loadCartFromBackend]);
-  
+
   const toggleCart = () => {
     setIsOpen(!isOpen);
   };
-  
+
   const handleRemoveItem = async (itemId: string) => {
     await removeItem(itemId, user?.id);
   };
-  
+
   const handleUpdateQuantity = async (itemId: string, quantity: number) => {
     await updateQuantity(itemId, quantity, user?.id);
   };
-  
+
   const handleClearCart = async () => {
     await clearCart(user?.id);
   };
-  
+
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = getTotalPrice();
-  
+
   return (
     <>
       {/* Cart Button */}
@@ -75,11 +75,11 @@ export default function CartSidebar() {
           )}
         </div>
       </button>
-      
+
       {/* Cart Sidebar */}
       <div
         className={`fixed top-0 right-0 h-full w-full md:w-96 bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
+          isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
@@ -105,7 +105,7 @@ export default function CartSidebar() {
               </svg>
             </button>
           </div>
-          
+
           {/* Cart Content */}
           <div className="flex-grow overflow-y-auto p-4">
             {error && (
@@ -113,13 +113,13 @@ export default function CartSidebar() {
                 {error}
               </div>
             )}
-            
+
             {isLoading && (
               <div className="flex justify-center items-center py-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
               </div>
             )}
-            
+
             {items.length === 0 ? (
               <div className="text-center py-8">
                 <svg
@@ -147,38 +147,45 @@ export default function CartSidebar() {
               <>
                 <div className="mb-4">
                   <p className="text-gray-600">
-                    Ordering from: <span className="font-medium">{vendorName}</span>
+                    Ordering from:{" "}
+                    <span className="font-medium">{vendorName}</span>
                   </p>
                 </div>
-                
-                {items.map((item) => (
+
+                {items.map((item, indx) => (
                   <div
-                    key={item._id}
+                    key={indx}
                     className="flex justify-between items-center py-4 border-b"
                   >
                     <div className="flex-grow">
                       <h3 className="font-medium">{item.name}</h3>
                       <p className="text-gray-600">₹{item.price}</p>
                     </div>
-                    
+
                     <div className="flex items-center">
                       <button
-                        onClick={() => handleUpdateQuantity(item._id, item.quantity - 1)}
+                        onClick={() =>
+                          handleUpdateQuantity(item.id, item.quantity - 1)
+                        }
                         className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full"
                         disabled={isLoading}
                       >
                         -
                       </button>
-                      <span className="mx-2 w-6 text-center">{item.quantity}</span>
+                      <span className="mx-2 w-6 text-center">
+                        {item.quantity}
+                      </span>
                       <button
-                        onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)}
+                        onClick={() =>
+                          handleUpdateQuantity(item.id, item.quantity + 1)
+                        }
                         className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full"
                         disabled={isLoading}
                       >
                         +
                       </button>
                       <button
-                        onClick={() => handleRemoveItem(item._id)}
+                        onClick={() => handleRemoveItem(item.id)}
                         className="ml-4 text-red-500 hover:text-red-600"
                         disabled={isLoading}
                       >
@@ -202,7 +209,7 @@ export default function CartSidebar() {
               </>
             )}
           </div>
-          
+
           {/* Cart Footer */}
           {items.length > 0 && (
             <div className="p-4 border-t">
@@ -210,7 +217,7 @@ export default function CartSidebar() {
                 <span className="font-medium">Total:</span>
                 <span className="font-bold">₹{totalPrice}</span>
               </div>
-              
+
               <div className="space-y-2">
                 <Link
                   href="/checkout"
@@ -231,7 +238,7 @@ export default function CartSidebar() {
           )}
         </div>
       </div>
-      
+
       {/* Overlay */}
       {isOpen && (
         <div
