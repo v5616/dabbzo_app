@@ -3,10 +3,11 @@
 import Image from "next/image";
 import React from "react";
 import { useCartStore, MenuItem } from "@/store/cartStore";
+import { useAuth } from "@/providers/AuthProvider";
 
 // Type definition for a single vendor
 type Vendor = {
-  _id: string;
+  id: string;
   name: string;
   description: string;
   image: string;
@@ -21,11 +22,12 @@ interface VendorPageContentProps {
 }
 
 export default function VendorPageContent({ vendor }: VendorPageContentProps) {
-  const { addItem, items } = useCartStore();
+  const { user } = useAuth();
+  const { addItem, isLoading } = useCartStore();
 
-  const handleAddToCart = (item: MenuItem) => {
+  const handleAddToCart = async (item: MenuItem) => {
     if (vendor) {
-      addItem(vendor._id, vendor.name, item);
+      await addItem(vendor.id, vendor.name, item, user?.id);
     }
   };
 
@@ -60,23 +62,24 @@ export default function VendorPageContent({ vendor }: VendorPageContentProps) {
             <p className="font-bold mb-4">₹{item.price}</p>
             <button
               onClick={() => handleAddToCart(item)}
-              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition"
+              disabled={isLoading}
+              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Add to Cart
+              {isLoading ? "Adding..." : "Add to Cart"}
             </button>
           </div>
         ))}
       </div>
 
       {/* Cart Section */}
-      <div className="mt-12 p-6 bg-gray-50 rounded-xl shadow">
+      {/* <div className="mt-12 p-6 bg-gray-50 rounded-xl shadow">
         <h2 className="text-xl font-semibold mb-4">Your Cart</h2>
         {items.length === 0 ? (
           <p className="text-gray-600">Your cart is empty</p>
         ) : (
           <ul className="space-y-2">
-            {items.map((item) => (
-              <li key={item._id} className="flex justify-between">
+            {items.map((item, indx) => (
+              <li key={indx} className="flex justify-between">
                 <span>
                   {item.name} - ₹{item.price}
                 </span>
@@ -85,7 +88,7 @@ export default function VendorPageContent({ vendor }: VendorPageContentProps) {
             ))}
           </ul>
         )}
-      </div>
+      </div> */}
     </div>
   );
 }

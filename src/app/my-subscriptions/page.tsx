@@ -2,8 +2,9 @@
 
 // import { useState } from 'react'; // Will be used when API is implemented
 import Link from 'next/link';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
-export default function MySubscriptionsPage() {
+function MySubscriptionsPage() {
   // In a real app, this would fetch from the API based on the logged-in user
   // For now, we'll use mock data showing no active subscriptions
   // Mock data - will be replaced with actual API call
@@ -78,5 +79,13 @@ export default function MySubscriptionsPage() {
       </div>
       */}
     </div>
+  );
+}
+
+export default function ProtectedMySubscriptionsPage() {
+  return (
+    <ProtectedRoute>
+      <MySubscriptionsPage />
+    </ProtectedRoute>
   );
 }
