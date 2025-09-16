@@ -1,8 +1,9 @@
-import { cookies } from "next/headers";
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import ProfileClient from "@/components/profile/ProfileClient";
-import ClientOnlyProfile from "../../components/profile/ClientOnlyProfile";
+import { useAuth } from "@/providers/AuthProvider";
 
 interface User {
   id: string;
@@ -51,23 +52,67 @@ async function fetchUserProfile(
   }
 }
 
-async function ProfilePage() {
-  // Try to get authenticated user from server-side Supabase client
-  const cookieStore = cookies();
-  const supabase = createServerComponentClient({ cookies: () => cookieStore });
+export default function ClientOnlyProfile() {
+  const { user: authUser, loading } = useAuth();
+  const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
+  useEffect(() => {
+    async function loadProfile() {
+      if (!authUser) {
+        setIsLoading(false);
+        return;
+      }
 
-  // If server-side auth fails, let the client handle it
-  if (!authUser) {
-    console.log("Server-side auth failed, falling back to client-side:");
-    return <ClientOnlyProfile />;
+      try {
+        const { user, error } = await fetchUserProfile(authUser.id);
+        if (error) {
+          setError(error);
+        } else {
+          setProfileUser(user || null);
+        }
+      } catch (err) {
+        setError("Failed to load profile");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (!loading) {
+      loadProfile();
+    }
+  }, [authUser, loading]);
+
+  if (loading || isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-8"></div>
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  // Fetch user profile data
-  const { user: profileUser, error } = await fetchUserProfile(authUser.id);
+  if (!authUser) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <h2 className="font-bold">Authentication Required</h2>
+            <p>Please log in to view your profile.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -91,8 +136,8 @@ async function ProfilePage() {
           </h1>
         </div>
 
-        {/* Pass server data to client component for interactive features */}
-        <ProfileClient initialUser={profileUser} userId={authUser.id} />
+        {/* Pass client data to ProfileClient component for interactive features */}
+        <ProfileClient initialUser={profileUser || undefined} userId={authUser.id} />
 
         {/* Order History Link */}
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -142,6 +187,3 @@ async function ProfilePage() {
     </div>
   );
 }
-
-// Export the ProfilePage directly since we handle auth at server level
-export default ProfilePage;

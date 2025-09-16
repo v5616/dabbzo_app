@@ -3,87 +3,62 @@ import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 
-type ProfilePreferences = {
-  address?: string;
-  referralCode?: string;
-  [key: string]: unknown;
-};
-
-type ProfileRow = {
-  id: string;
-  email: string | null;
-  full_name: string | null;
-  profile_image: string | null;
-  preferences: ProfilePreferences | null;
-  created_at: string | null;
-  updated_at: string | null;
-};
 type UserMetadata = {
   full_name?: string;
   name?: string;
   picture?: string;
   address?: string;
   referralCode?: string;
-  [key: string]: unknown; // fallback for extra keys
+  [key: string]: unknown;
 };
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const resolvedParams = await params;
-  const userId = resolvedParams.id;
+  const userId = params.id;
 
   try {
-    const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (hasServiceKey) {
-      // Server-side admin path (preferred for API routes)
+      // ✅ Use admin client with service role key
       const admin = createClient(
         supabaseUrl,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
       );
 
-      // 1) Fetch profile from your own table first
-      const { data: profile, error: profileError } = await admin
-        .from("profiles")
-        .select(
-          "id,email,full_name,profile_image,preferences,created_at,updated_at"
-        )
-        .eq("id", userId)
-        .single<ProfileRow>();
+      const { data: authRes, error: authError } =
+        await admin.auth.admin.getUserById(userId);
+      if (authError) throw authError;
 
-      if (profileError && profileError.code !== "PGRST116") {
-        throw profileError;
+      const authUser = authRes?.user || null;
+      if (!authUser) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
 
-      // 2) Optionally enrich with auth user details
-      const { data: authRes } = await admin.auth.admin.getUserById(userId);
-      const authUser = authRes?.user || null;
-
-      const metadata = authUser?.user_metadata as UserMetadata | undefined;
+      const metadata = authUser.user_metadata as UserMetadata | undefined;
 
       const user = {
-        id: userId,
-        email: profile?.email ?? authUser?.email ?? "",
+        id: authUser.id,
+        email: authUser.email ?? "",
         name:
-          profile?.full_name ||
           metadata?.full_name ||
           metadata?.name ||
-          (authUser?.email ? authUser.email.split("@")[0] : ""),
-        phone: authUser?.phone ?? null,
-        address: profile?.preferences?.address ?? null,
-        referralCode: profile?.preferences?.referralCode ?? null,
-        profilePicture: profile?.profile_image || metadata?.picture || null,
-        created_at: profile?.created_at ?? authUser?.created_at ?? null,
-        updated_at: profile?.updated_at ?? null,
+          (authUser.email ? authUser.email.split("@")[0] : ""),
+        phone: authUser.phone ?? null,
+        address: metadata?.address ?? null,
+        referralCode: metadata?.referralCode ?? null,
+        profilePicture: metadata?.picture ?? null,
+        created_at: authUser.created_at ?? null,
+        updated_at: authUser.updated_at ?? null,
       };
 
       return NextResponse.json({ user });
     }
 
-    // Fallback: use a cookie-bound client with RLS (requires user to be signed in)
+    // ✅ Fallback: cookie-bound client with RLS
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
@@ -96,37 +71,29 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select(
-        "id,email,full_name,profile_image,preferences,created_at,updated_at"
-      )
-      .eq("id", userId)
-      .single<ProfileRow>();
-
-    if (profileError) {
-      return NextResponse.json(
-        { error: profileError.message },
-        { status: 400 }
-      );
-    }
+    // Directly return session user info
+    const metadata = sessionRes.user.user_metadata as UserMetadata | undefined;
 
     const user = {
-      id: userId,
-      email: profile?.email ?? sessionRes.user.email ?? "",
-      name: profile?.full_name || (sessionRes.user.email?.split("@")[0] ?? ""),
+      id: sessionRes.user.id,
+      email: sessionRes.user.email ?? "",
+      name:
+        metadata?.full_name ||
+        metadata?.name ||
+        (sessionRes.user.email ? sessionRes.user.email.split("@")[0] : ""),
       phone: sessionRes.user.phone ?? null,
-      address: profile?.preferences?.address ?? null,
-      referralCode: profile?.preferences?.referralCode ?? null,
-      profilePicture: profile?.profile_image ?? null,
-      created_at: profile?.created_at ?? null,
-      updated_at: profile?.updated_at ?? null,
+      address: metadata?.address ?? null,
+      referralCode: metadata?.referralCode ?? null,
+      profilePicture: metadata?.picture ?? null,
+      created_at: sessionRes.user.created_at ?? null,
+      updated_at: sessionRes.user.updated_at ?? null,
     };
 
     return NextResponse.json({ user });
   } catch (error: unknown) {
     console.error("Profile API Error:", error);
-    const message = error instanceof Error ? error.message : "Unexpected error";
+    const message =
+      error instanceof Error ? error.message : JSON.stringify(error);
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

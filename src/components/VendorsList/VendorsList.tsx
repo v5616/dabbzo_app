@@ -15,7 +15,8 @@ const VendorsList = ({ vendor }: Props) => {
         <Image
           src={vendor.image}
           alt={vendor.name}
-          className="vendor-card-image"
+          fill // ✅ makes image cover parent
+          className="object-cover vendor-card-image"
         />
         <div className="absolute bottom-3 left-3 z-20">
           <div className="rating-badge">{vendor.rating}</div>
