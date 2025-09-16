@@ -18,8 +18,47 @@ export default function Navbar() {
     return pathname === path;
   };
 
-  // Remove the duplicate authentication logic
-  // No need for the useEffect and supabase client here
+  // Render auth section consistently
+  const renderAuthSection = (isMobile = false) => {
+    // Always show loading state on server and while mounting
+    if (!mounted || loading) {
+      return (
+        <div
+          className={`${isMobile ? "w-full h-10" : "w-16 h-8"} bg-gray-200 ${
+            isMobile ? "rounded-md" : "rounded-full"
+          } animate-pulse`}
+        ></div>
+      );
+    }
+
+    if (user) {
+      return (
+        <div
+          className={`${
+            isMobile ? "text-center py-2" : "flex items-center space-x-2"
+          } text-sm text-gray-600`}
+        >
+          <span>Welcome back!</span>
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        href="/login"
+        className={`${
+          isMobile ? "block w-full text-center" : ""
+        } bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-medium py-2 px-4 ${
+          isMobile ? "rounded-md" : "rounded-full"
+        } transition-all duration-300 shadow-md hover:shadow-lg ${
+          !isMobile ? "whitespace-nowrap" : ""
+        }`}
+        onClick={isMobile ? () => setIsMenuOpen(false) : undefined}
+      >
+        Login
+      </Link>
+    );
+  };
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -104,20 +143,7 @@ export default function Navbar() {
               </div>
             </Link>
             <div className="min-w-[64px] h-8 flex items-center justify-center">
-              {!mounted || loading ? (
-                <div className="w-16 h-8 bg-gray-200 rounded-full animate-pulse"></div>
-              ) : user ? (
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <span>Welcome back!</span>
-                </div>
-              ) : (
-                <Link
-                  href="/login"
-                  className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-medium py-2 px-4 rounded-full transition-all duration-300 shadow-md hover:shadow-lg whitespace-nowrap"
-                >
-                  Login
-                </Link>
-              )}
+              {renderAuthSection(false)}
             </div>
           </div>
 
@@ -225,21 +251,7 @@ export default function Navbar() {
               Profile
             </Link>
             <div className="w-full min-h-[40px] flex items-center">
-              {!mounted || loading ? (
-                <div className="w-full h-10 bg-gray-200 rounded-md animate-pulse"></div>
-              ) : user ? (
-                <div className="text-center text-sm text-gray-600 py-2">
-                  Welcome back!
-                </div>
-              ) : (
-                <Link
-                  href="/login"
-                  className="block w-full text-center bg-gradient-to-r from-red-500 to-orange-500 text-white font-medium py-2 px-4 rounded-md"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Login
-                </Link>
-              )}
+              {renderAuthSection(true)}
             </div>
           </div>
         )}

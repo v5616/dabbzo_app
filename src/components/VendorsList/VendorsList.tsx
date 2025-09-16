@@ -1,6 +1,7 @@
 import Link from "next/link";
 import React from "react";
 import { Vendor } from "@/app/page";
+import Image from "next/image";
 
 type Props = {
   vendor: Vendor;
@@ -11,7 +12,7 @@ const VendorsList = ({ vendor }: Props) => {
     <Link key={vendor.id} href={`/vendor/${vendor.id}`} className="card group">
       <div className="relative h-48 overflow-hidden rounded-t-xl">
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-        <img
+        <Image
           src={vendor.image}
           alt={vendor.name}
           className="vendor-card-image"
