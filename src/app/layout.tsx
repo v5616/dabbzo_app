@@ -7,7 +7,6 @@ import { ReduxProvider } from "@/redux/provider";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
 
-
 export const metadata: Metadata = {
   title: "Dabbzo - Digital Tiffin Service",
   description: "Order homemade tiffin meals from local vendors",
@@ -20,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="font-sans">
+      <body className="font-sans" suppressHydrationWarning={true}>
         <ToastProvider>
           <AuthProvider>
             <ReduxProvider>

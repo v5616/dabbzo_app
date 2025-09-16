@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
@@ -24,7 +25,7 @@ const FiltersSection = ({ filteredVendors }: Props) => {
         <Link href={`/vendor/${vendor._id}`} key={vendor._id} className="block">
           <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full">
             <div className="relative h-48">
-              <img
+              <Image
                 src={vendor.image}
                 alt={vendor.name}
                 className="w-full h-full object-cover"

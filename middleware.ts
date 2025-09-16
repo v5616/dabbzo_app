@@ -8,24 +8,42 @@ export async function middleware(req: NextRequest) {
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
 
-  // Use more descriptive log
-  console.log("[MIDDLEWARE] Path:", req.nextUrl.pathname, "User:", user);
+  const path = req.nextUrl.pathname;
 
-  const protectedRoutes = ["/history", "/my-subscriptions", "/profile"];
-  if (
-    !user &&
-    protectedRoutes.some((route) => req.nextUrl.pathname.startsWith(route))
-  ) {
-    console.log("[MIDDLEWARE] Redirecting to /login");
-    return NextResponse.redirect(new URL("/login", req.url));
+  // Only redirect if there's a clear authentication error AND we're on a protected route
+  const protectedRoutes = ["/history", "/my-subscriptions", "/profile", "/admin"];
+  const isProtectedRoute = protectedRoutes.some(route => path.startsWith(route));
+
+  if (isProtectedRoute && (error || !user)) {
+    console.log("[MIDDLEWARE] Redirecting unauthenticated user from protected route:", path);
+
+    const redirectUrl = new URL("/login", req.url);
+    // Add the original path as a redirect parameter
+    redirectUrl.searchParams.set("redirect", path);
+    
+    const response = NextResponse.redirect(redirectUrl);
+    
+    // Only clear cookies if there's an explicit auth error (not just missing user)
+    if (error) {
+      response.cookies.delete("sb-access-token");
+      response.cookies.delete("sb-refresh-token");
+    }
+
+    return response;
   }
 
   return res;
 }
 
-// Add this config export to optimize middleware execution
 export const config = {
-  matcher: ["/history", "/orders/:path*", "/profile/:path*"],
+  matcher: [
+    "/history",
+    "/orders/:path*",
+    "/profile/:path*",
+    "/my-subscriptions",
+    "/admin/:path*",
+  ],
 };
