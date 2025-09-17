@@ -2,52 +2,17 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const dynamic = 'force-dynamic';
-
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
 
   if (code) {
-    console.log('Auth callback - Exchanging code for session')
-    const supabase = createRouteHandlerClient(
-      { cookies },
-      {
-        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      }
-    )
-    
-    console.log('Auth callback - Before exchangeCodeForSession')
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-    console.log('Auth callback - After exchangeCodeForSession', { 
-      hasError: !!error, 
-      error: error?.message,
-      hasSessionData: !!data?.session,
-      hasUser: !!data?.user
-    })
+    const supabase = createRouteHandlerClient({ cookies })
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (error) {
       console.error('Error exchanging code for session:', error)
-      const redirectUrl = new URL('/login', requestUrl.origin)
-      redirectUrl.searchParams.set('error', 'oauth_error')
-      return NextResponse.redirect(redirectUrl)
-    }
-
-    // Verify session is present after exchange
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
-    console.log('Auth callback - Session verification:', {
-      hasSession: !!sessionData?.session,
-      hasUser: !!sessionData?.session?.user,
-      error: sessionError?.message
-    })
-
-    if (!sessionData?.session) {
-        console.error('No session found after exchangeCodeForSession', {
-        codePresent: !!code,
-        // Skip cookie logging to avoid TypeScript errors
-      })
-      return NextResponse.redirect(`${requestUrl.origin}/login?error=no_session`)
+      return NextResponse.redirect(`${requestUrl.origin}/login?error=oauth_error`)
     }
 
     // Only proceed with profile creation and success flag if no error occurred
@@ -59,59 +24,58 @@ export async function GET(request: NextRequest) {
       const user = userRes?.user
 
       if (user) {
-        console.log('Processing user profile for:', user.email);
-        
-        // Get user metadata from OAuth provider
-        const meta = user.user_metadata || {};
-        
-        // Prepare profile data with fallbacks
-        const fullName = meta.full_name || 
-                        meta.name || 
-                        meta.display_name ||
-                        (user.email ? user.email.split('@')[0] : 'User');
-                        
-        const avatarUrl = meta.avatar_url || meta.picture || null;
+        type UserMetadata = {
+          full_name?: string;
+          display_name?: string;
+          name?: string;
+          avatar_url?: string;
+          picture?: string;
+        };
 
-        // Try to insert/update the profile directly
-        const { data: profileData, error: profileError } = await supabase
+        const meta: UserMetadata = user.user_metadata || {};
+
+        const profilePayload = {
+          id: user.id,
+          email: user.email,
+          full_name:
+            meta.full_name ||
+            meta.display_name ||
+            meta.name ||
+            (user.email ? user.email.split('@')[0] : 'User'),
+          profile_image: meta.avatar_url || meta.picture || null,
+          preferences: {},
+        }
+
+        let { error: profileError } = await supabase
           .from('profiles')
-          .upsert(
-            {
-              id: user.id,
-              email: user.email,
-              full_name: fullName,
-              name: fullName, // Some schemas use name instead of full_name
-              profile_image: avatarUrl,
-              avatar_url: avatarUrl, // Some schemas use avatar_url
-              preferences: {},
-              updated_at: new Date().toISOString()
-            },
-            { onConflict: 'id' }
-          )
-          .select()
-          .single();
+          .upsert(profilePayload, { onConflict: 'id' })
 
         if (profileError) {
-          console.error('Error creating/updating profile:', profileError);
-          
-          // Fallback: Try with minimal required fields
-          const { error: minimalError } = await supabase
-            .from('profiles')
-            .upsert(
-              { 
-                id: user.id,
-                email: user.email,
-                name: fullName,
-                updated_at: new Date().toISOString()
-              },
-              { onConflict: 'id' }
-            );
-            
-          if (minimalError) {
-            console.error('Minimal profile update also failed:', minimalError);
+          // Retry with alternative column names some schemas use
+          const altPayload: Record<string, string | null> = {
+            id: user.id,
+            // some projects use `name` and `avatar_url` instead
+            name:
+              profilePayload.full_name,
+            avatar_url:
+              profilePayload.profile_image,
           }
-        } else {
-          console.log('Profile updated successfully:', profileData);
+
+          const retry1 = await supabase
+            .from('profiles')
+            .upsert(altPayload, { onConflict: 'id' })
+
+          profileError = retry1.error
+
+          if (profileError) {
+            // Final fallback: ensure at least the row exists
+            const retry2 = await supabase
+              .from('profiles')
+              .upsert({ id: user.id }, { onConflict: 'id' })
+            if (retry2.error) {
+              console.error('Profile upsert failed (all attempts):', retry2.error)
+            }
+          }
         }
       }
     } catch (upsertErr) {
@@ -119,12 +83,6 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Redirect to the original URL or home page after successful sign-in
-  const redirectTo = request.cookies.get('redirectedFrom')?.value || '/'
-  
-  // Clear the redirect cookie
-  const response = NextResponse.redirect(new URL(redirectTo, requestUrl.origin))
-  response.cookies.delete('redirectedFrom')
-  
-  return response
+  // Only add signed_in flag if code exchange was successful (no error above)
+  return NextResponse.redirect(`${requestUrl.origin}?signed_in=1`)
 }
