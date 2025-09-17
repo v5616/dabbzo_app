@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabaseClient";
-import { getBaseUrl } from "@/lib/urlUtils";
 
 export interface AuthUser {
   id: string;
@@ -41,7 +40,7 @@ export const authHelpers = {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${getBaseUrl()}/auth/callback`
+        redirectTo: `${window.location.origin}/auth/callback`
       }
     });
     return { data, error };
@@ -64,7 +63,7 @@ export const authHelpers = {
   // Reset password
   async resetPassword(email: string) {
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${getBaseUrl()}/reset-password`,
+      redirectTo: `${window.location.origin}/reset-password`,
     });
     return { data, error };
   },
