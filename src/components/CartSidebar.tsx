@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCartStore } from "@/store/cartStore";
+import { useUserId } from "@/hooks/useUserId";
 import { useAuth } from "@/providers/AuthProvider";
 
 export default function CartSidebar() {
@@ -10,6 +11,7 @@ export default function CartSidebar() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const { user } = useAuth();
+  const { userId } = useUserId();
   const {
     items,
     vendorName,
@@ -18,17 +20,17 @@ export default function CartSidebar() {
     getTotalPrice,
     getTotalItems,
     clearCart,
-    loadCartFromBackend,
+    loadCartHybrid,
     isLoading,
     error,
   } = useCartStore();
 
-  // Load cart from backend when user logs in
+  // Load cart using hybrid approach when userId is available
   useEffect(() => {
-    if (user?.id) {
-      loadCartFromBackend(user.id);
+    if (userId) {
+      loadCartHybrid(userId);
     }
-  }, [user?.id, loadCartFromBackend]);
+  }, [userId, loadCartHybrid]);
 
   useEffect(() => {
     setHasMounted(true);

@@ -40,9 +40,10 @@ async function fetchOrderHistory(
 }
 
 async function OrderHistory() {
-  // Get user ID from cookies or use static fallback
-  // In a real app, you'd get this from authentication
-  const userId = "26ee0f1c-09db-42c9-b3dd-2df094a6d7af";
+  // Get user ID from localStorage with fallback
+  // In a real app, this will be replaced with API-based authentication
+  const { userStorage } = await import('@/lib/userStorage');
+  const userId = userStorage.initializeUserId();
 
   const { orders, error } = await fetchOrderHistory(userId);
 

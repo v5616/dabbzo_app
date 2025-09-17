@@ -107,6 +107,8 @@ export default async function VendorsPage({
                 <Image
                   src={vendor.image}
                   alt={vendor.name}
+                  width={400}
+                  height={160}
                   className="h-40 w-full object-cover rounded-lg mb-4"
                 />
                 <h3 className="text-lg font-semibold mb-2">{vendor.name}</h3>

@@ -100,6 +100,8 @@ export default function VendorsList({ vendors }: VendorsListProps) {
                   <Image
                     src={vendor.image}
                     alt={vendor.name}
+                    width={400}
+                    height={192}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-2 right-2 bg-primary text-white px-2 py-1 rounded-md text-sm font-bold">

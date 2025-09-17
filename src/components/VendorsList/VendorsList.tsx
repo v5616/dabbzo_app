@@ -15,6 +15,8 @@ const VendorsList = ({ vendor }: Props) => {
         <Image
           src={vendor.image}
           alt={vendor.name}
+          width={400}
+          height={192}
           className="vendor-card-image"
         />
         <div className="absolute bottom-3 left-3 z-20">
