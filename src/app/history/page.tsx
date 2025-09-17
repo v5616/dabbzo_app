@@ -6,10 +6,9 @@ async function fetchOrderHistory(
   userId: string
 ): Promise<{ orders?: ApiOrder[]; error?: string }> {
   try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-      }/api/order-history?user_id=${userId}`,
+      `${baseUrl}/api/order-history?user_id=${encodeURIComponent(userId)}`,
       {
         cache: "no-store", // Ensure fresh data on each request
       }
@@ -22,28 +21,22 @@ async function fetchOrderHistory(
     }
 
     const data = await response.json();
-
-    if (data.error) {
-      throw new Error(data.error);
-    }
-
     return { orders: data || [] };
   } catch (error) {
     console.error("Error fetching order history:", error);
     return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "Failed to fetch order history",
+      error: error instanceof Error ? error.message : "Failed to fetch order history",
     };
   }
 }
 
 async function OrderHistory() {
-  // Get user ID from localStorage with fallback
-  // In a real app, this will be replaced with API-based authentication
   const { userStorage } = await import('@/lib/userStorage');
   const userId = userStorage.initializeUserId();
+  
+  if (!userId) {
+    return <div>Please sign in to view your order history</div>;
+  }
 
   const { orders, error } = await fetchOrderHistory(userId);
 
