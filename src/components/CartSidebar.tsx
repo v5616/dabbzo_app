@@ -3,44 +3,45 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCartStore } from "@/store/cartStore";
-import { useAuth } from "@/providers/AuthProvider";
+import { useUserId } from "@/hooks/useUserId";
 
 export default function CartSidebar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useAuth();
+  const { userId } = useUserId();
   const {
     items,
     vendorName,
     removeItem,
     updateQuantity,
     getTotalPrice,
+    getTotalItems,
     clearCart,
-    loadCartFromBackend,
+    loadCartHybrid,
     isLoading,
     error,
   } = useCartStore();
 
-  // Load cart from backend when user logs in
+  // Load cart using hybrid approach when userId is available
   useEffect(() => {
-    if (user?.id) {
-      loadCartFromBackend(user.id);
+    if (userId) {
+      loadCartHybrid(userId);
     }
-  }, [user?.id, loadCartFromBackend]);
+  }, [userId, loadCartHybrid]);
 
   const toggleCart = () => {
     setIsOpen(!isOpen);
   };
 
   const handleRemoveItem = async (itemId: string) => {
-    await removeItem(itemId, user?.id);
+    await removeItem(itemId, userId);
   };
 
   const handleUpdateQuantity = async (itemId: string, quantity: number) => {
-    await updateQuantity(itemId, quantity, user?.id);
+    await updateQuantity(itemId, quantity, userId);
   };
 
   const handleClearCart = async () => {
-    await clearCart(user?.id);
+    await clearCart(userId);
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);

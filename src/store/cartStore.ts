@@ -2,11 +2,13 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export interface MenuItem {
-  _id: string;
+  id: number;
   name: string;
   description: string;
   price: number;
   image: string;
+  vendor_id?: number;
+  created_at?: string;
 }
 
 export interface CartItem {
@@ -36,8 +38,15 @@ interface CartStore {
     userId?: string
   ) => Promise<void>;
   clearCart: (userId?: string) => Promise<void>;
+  clearCartAndAddItem: (
+    vendorId: string,
+    vendorName: string,
+    item: MenuItem,
+    userId?: string
+  ) => Promise<void>;
   loadCartFromBackend: (userId: string) => Promise<void>;
   syncWithBackend: (userId: string) => Promise<void>;
+  loadCartHybrid: (userId: string) => Promise<void>;
   getTotalItems: () => number;
   getTotalPrice: () => number;
 }
@@ -55,6 +64,7 @@ export const useCartStore = create<CartStore>()(
         const { items, vendorId: currentVendorId } = get();
         set({ isLoading: true, error: null });
 
+
         try {
           // If adding from a different vendor, clear the cart first
           if (currentVendorId && currentVendorId !== vendorId) {
@@ -66,7 +76,7 @@ export const useCartStore = create<CartStore>()(
 
           // Check if item already exists in cart
           const existingItem = items.find(
-            (cartItem) => cartItem.id === item._id
+            (cartItem) => cartItem.id === String(item.id)
           );
 
           if (existingItem) {
@@ -74,7 +84,7 @@ export const useCartStore = create<CartStore>()(
             const newQuantity = existingItem.quantity + 1;
             if (userId && existingItem.cart_id) {
               // Update in backend
-              await fetch("/api/cart", {
+              const response = await fetch("/api/cart", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -82,11 +92,16 @@ export const useCartStore = create<CartStore>()(
                   quantity: newQuantity,
                 }),
               });
+              
+              if (!response.ok) {
+                const result = await response.json();
+                throw new Error(result.error || 'Failed to update item');
+              }
             }
 
             set({
               items: items.map((cartItem) =>
-                cartItem.id === item._id
+                cartItem.id === String(item.id)
                   ? { ...cartItem, quantity: newQuantity }
                   : cartItem
               ),
@@ -103,11 +118,24 @@ export const useCartStore = create<CartStore>()(
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   user_id: userId,
-                  meal_id: item._id,
+                  meal_id: item.id,
                   quantity: 1,
+                  vendor_id: vendorId,
                 }),
               });
               const result = await response.json();
+              
+              if (!response.ok) {
+                if (result.needsClearCart) {
+                  // Handle vendor conflict - show error and ask user to clear cart
+                  set({ 
+                    error: result.error + " Would you like to clear your cart and add this item?",
+                  });
+                  return;
+                } else {
+                  throw new Error(result.error || 'Failed to add item');
+                }
+              }
               cart_id = result.cart_id;
             }
 
@@ -115,7 +143,7 @@ export const useCartStore = create<CartStore>()(
               items: [
                 ...items,
                 {
-                  id: item._id,
+                  id: String(item.id),
                   name: item.name,
                   price: item.price,
                   quantity: 1,
@@ -250,9 +278,9 @@ export const useCartStore = create<CartStore>()(
               (item: {
                 cart_id: string;
                 quantity: number;
-                meals: { id: string; name: string; price: number };
+                meals: { id: number; name: string; price: number; image_url?: string };
               }) => ({
-                _id: item.meals.id,
+                id: String(item.meals.id),
                 name: item.meals.name,
                 price: item.meals.price,
                 quantity: item.quantity,
@@ -276,6 +304,66 @@ export const useCartStore = create<CartStore>()(
 
       syncWithBackend: async (userId) => {
         await get().loadCartFromBackend(userId);
+      },
+
+      loadCartHybrid: async (userId) => {
+        set({ isLoading: true, error: null });
+
+        try {
+          // First, try to load from API
+          const response = await fetch(`/api/cart?user_id=${userId}`);
+          const cartData = await response.json();
+
+          if (response.ok && cartData && cartData.length > 0) {
+            // API data available - use it and update localStorage
+            const items: CartItem[] = cartData.map(
+              (item: {
+                cart_id: string;
+                quantity: number;
+                meals: { id: number; name: string; price: number; image_url?: string };
+              }) => ({
+                id: String(item.meals.id),
+                name: item.meals.name,
+                price: item.meals.price,
+                quantity: item.quantity,
+                cart_id: item.cart_id,
+              })
+            );
+
+            set({ items });
+            console.log(`Loaded ${items.length} items from API (hybrid mode)`);
+          } else {
+            // No API data or error - localStorage will be used automatically by Zustand persist
+            console.log("No API data found, using localStorage (hybrid mode)");
+          }
+        } catch (error) {
+          // API error - localStorage will be used automatically by Zustand persist
+          console.log("API error, falling back to localStorage:", error);
+          set({
+            error: "Could not sync with server, using offline data"
+          });
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      clearCartAndAddItem: async (vendorId, vendorName, item, userId) => {
+        set({ isLoading: true, error: null });
+
+        try {
+          // First clear the existing cart
+          await get().clearCart(userId);
+          
+          // Then add the new item from different vendor
+          await get().addItem(vendorId, vendorName, item, userId);
+        } catch (error) {
+          set({
+            error:
+              error instanceof Error ? error.message : "Failed to switch vendor and add item",
+          });
+        } finally {
+          set({ isLoading: false });
+        }
       },
 
       getTotalItems: () => {

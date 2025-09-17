@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import CartSidebar from "@/components/CartSidebar";
+import CartProvider from "@/components/CartProvider";
 import { ReduxProvider } from "@/redux/provider";
 import { AuthProvider } from "@/providers/AuthProvider";
 
@@ -23,14 +24,16 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <ReduxProvider>
-            <Navbar />
-            <main className="container-custom py-8">{children}</main>
-            <CartSidebar />
-            <footer className="bg-gray-100 py-6 mt-12">
-              <div className="container-custom text-center text-gray-600">
-                <p>© {new Date().getFullYear()} Dabbzo. All rights reserved.</p>
-              </div>
-            </footer>
+            <CartProvider>
+              <Navbar />
+              <main className="container-custom py-8">{children}</main>
+              <CartSidebar />
+              <footer className="bg-gray-100 py-6 mt-12">
+                <div className="container-custom text-center text-gray-600">
+                  <p>© {new Date().getFullYear()} Dabbzo. All rights reserved.</p>
+                </div>
+              </footer>
+            </CartProvider>
           </ReduxProvider>
         </AuthProvider>
       </body>

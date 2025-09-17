@@ -3,7 +3,7 @@
 import Image from "next/image";
 import React from "react";
 import { useCartStore, MenuItem } from "@/store/cartStore";
-import { useAuth } from "@/providers/AuthProvider";
+import { useUserId } from "@/hooks/useUserId";
 
 // Type definition for a single vendor
 type Vendor = {
@@ -22,12 +22,12 @@ interface VendorPageContentProps {
 }
 
 export default function VendorPageContent({ vendor }: VendorPageContentProps) {
-  const { user } = useAuth();
+  const { userId } = useUserId();
   const { addItem, items, isLoading } = useCartStore();
 
   const handleAddToCart = async (item: MenuItem) => {
     if (vendor) {
-      await addItem(vendor.id, vendor.name, item, user?.id);
+      await addItem(vendor.id, vendor.name, item, userId);
     }
   };
 

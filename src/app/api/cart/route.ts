@@ -33,11 +33,11 @@ export async function GET(req: Request) {
   return NextResponse.json(data);
 }
 
-// ✅ POST - add item to cart
+// ✅ POST - add item to cart (with duplicate handling and vendor validation)
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { user_id, meal_id, quantity } = body;
+    const { user_id, meal_id, quantity = 1, vendor_id } = body;
 
     if (!user_id || !meal_id) {
       return NextResponse.json(
@@ -46,17 +46,88 @@ export async function POST(req: Request) {
       );
     }
 
-    const { data, error } = await supabase
+    // Check existing cart items for this user
+    const { data: existingCart, error: cartCheckError } = await supabase
       .from("cart")
-      .insert([{ user_id, meal_id, quantity }])
-      .select();
+      .select(`
+        cart_id, meal_id, quantity, vendor_id,
+        meals (id, vendor_id)
+      `)
+      .eq("user_id", user_id);
 
-    if (error) {
-      console.error("Supabase POST error:", error.message);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (cartCheckError) {
+      console.error("Supabase cart check error:", cartCheckError.message);
+      return NextResponse.json({ error: cartCheckError.message }, { status: 500 });
     }
 
-    return NextResponse.json(data[0]);
+    // Get vendor_id from meal if not provided
+    let itemVendorId = vendor_id;
+    if (!itemVendorId) {
+      const { data: mealData, error: mealError } = await supabase
+        .from("meals")
+        .select("vendor_id")
+        .eq("id", meal_id)
+        .single();
+
+      if (mealError) {
+        console.error("Supabase meal check error:", mealError.message);
+        return NextResponse.json({ error: "Meal not found" }, { status: 404 });
+      }
+      itemVendorId = mealData.vendor_id;
+    }
+
+    // Check vendor restriction - if cart has items from different vendor, reject
+    if (existingCart && existingCart.length > 0) {
+      const firstItem = existingCart[0];
+      const existingVendorId = (firstItem.meals as any)?.vendor_id || firstItem.vendor_id;
+      if (existingVendorId && existingVendorId !== itemVendorId) {
+        return NextResponse.json({
+          error: "Cannot add items from different vendors. Please clear your cart first.",
+          needsClearCart: true,
+          currentVendor: existingVendorId,
+          newVendor: itemVendorId
+        }, { status: 400 });
+      }
+    }
+
+    // Check if this specific item already exists in cart
+    const existingItem = existingCart?.find(item => item.meal_id === meal_id);
+
+    let result;
+
+    if (existingItem) {
+      // Update existing item quantity
+      const newQuantity = existingItem.quantity + quantity;
+      const { data, error } = await supabase
+        .from("cart")
+        .update({ 
+          quantity: newQuantity, 
+          updated_at: new Date().toISOString(),
+          vendor_id: itemVendorId
+        })
+        .eq("cart_id", existingItem.cart_id)
+        .select();
+
+      if (error) {
+        console.error("Supabase UPDATE error:", error.message);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+      result = data[0];
+    } else {
+      // Insert new item
+      const { data, error } = await supabase
+        .from("cart")
+        .insert([{ user_id, meal_id, quantity, vendor_id: itemVendorId }])
+        .select();
+
+      if (error) {
+        console.error("Supabase INSERT error:", error.message);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+      result = data[0];
+    }
+
+    return NextResponse.json(result);
   } catch (err: unknown) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Unknown error' }, { status: 500 });
   }
