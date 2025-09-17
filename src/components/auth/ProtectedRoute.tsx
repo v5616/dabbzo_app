@@ -1,54 +1,39 @@
 "use client";
 
-import { useAuth } from "@/providers/AuthProvider";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useAuth } from "@/providers/AuthProvider";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  redirectTo?: string;
-  fallback?: React.ReactNode;
 }
 
-export default function ProtectedRoute({ 
-  children, 
-  redirectTo = "/login",
-  fallback 
-}: ProtectedRouteProps) {
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push(redirectTo);
+    if (!loading && !user && !isRedirecting) {
+      setIsRedirecting(true);
+      router.push("/login");
     }
-  }, [user, loading, router, redirectTo]);
+  }, [user, loading, router, isRedirecting]);
 
-  // Show loading state
-  if (loading) {
+  // Show loading spinner while checking authentication or redirecting
+  if (loading || isRedirecting) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  // Show fallback or redirect if not authenticated
-  if (!user) {
-    if (fallback) {
-      return <>{fallback}</>;
-    }
-    return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
-          <p className="text-gray-600 mb-4">Please log in to access this page.</p>
-          <button 
-            onClick={() => router.push(redirectTo)}
-            className="btn-primary"
-          >
-            Go to Login
-          </button>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">
+            {loading ? "Checking authentication..." : "Redirecting to login..."}
+          </p>
+          {process.env.NODE_ENV === 'development' && (
+            <p className="text-xs text-gray-400 mt-2">
+              Environment: Development
+            </p>
+          )}
         </div>
       </div>
     );

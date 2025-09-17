@@ -10,7 +10,11 @@ const nextConfig: NextConfig = withBundleAnalyzer({
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "images.unsplash.com",
+        hostname: "images.unsplash.com", // ✅ Unsplash
+      },
+      {
+        protocol: "https",
+        hostname: "wogsvijwtdupbhgltkio.supabase.co", // ✅ Supabase storage
       },
     ],
   },

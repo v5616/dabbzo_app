@@ -1,6 +1,6 @@
 "use client";
 
-import { useCartStore } from "@/store/cartStore";
+import { useCartStore, type MenuItem } from "@/store/cartStore";
 import { useAuth } from "@/providers/AuthProvider";
 
 export default function TestCartPage() {
@@ -36,9 +36,25 @@ export default function TestCartPage() {
     }
   ];
 
-  const handleAddItem = async (item: any) => {
+  interface TestMenuItem extends Omit<MenuItem, 'id'> {
+    _id: string;
+    name: string;
+    description: string;
+    price: number;
+    image: string;
+  }
+
+  const handleAddItem = async (item: TestMenuItem) => {
     console.log("Adding item:", item);
-    await addItem(testVendor.id, testVendor.name, item, user?.id);
+    // Convert _id to id to match the MenuItem interface
+    const menuItem: MenuItem = {
+      id: Number(item._id.replace('meal-', '')), // Convert 'meal-1' to 1
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      image: item.image
+    };
+    await addItem(testVendor.id, testVendor.name, menuItem, user?.id);
   };
 
   return (

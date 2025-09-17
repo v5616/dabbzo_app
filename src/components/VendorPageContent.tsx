@@ -23,7 +23,7 @@ interface VendorPageContentProps {
 
 export default function VendorPageContent({ vendor }: VendorPageContentProps) {
   const { userId } = useUserId();
-  const { addItem, items, isLoading } = useCartStore();
+  const { addItem, isLoading } = useCartStore();
 
   const handleAddToCart = async (item: MenuItem) => {
     if (vendor) {
@@ -40,6 +40,7 @@ export default function VendorPageContent({ vendor }: VendorPageContentProps) {
             src={vendor.image}
             alt={vendor.name}
             fill
+            sizes="(max-width: 768px) 100vw, 50vw"
             className="rounded-xl shadow-lg object-cover"
           />
         </div>

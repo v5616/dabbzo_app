@@ -76,10 +76,23 @@ export async function POST(req: Request) {
       itemVendorId = mealData.vendor_id;
     }
 
+    // Define a type for the cart item
+    type CartItem = {
+      cart_id: string;
+      meal_id: string;
+      quantity: number;
+      vendor_id: string;
+      meals: Array<{
+        id: string;
+        vendor_id: string;
+        [key: string]: unknown;
+      }>;
+    };
+
     // Check vendor restriction - if cart has items from different vendor, reject
     if (existingCart && existingCart.length > 0) {
-      const firstItem = existingCart[0];
-      const existingVendorId = (firstItem.meals as any)?.vendor_id || firstItem.vendor_id;
+      const firstItem = existingCart[0] as CartItem;
+      const existingVendorId = firstItem.meals?.[0]?.vendor_id || firstItem.vendor_id;
       if (existingVendorId && existingVendorId !== itemVendorId) {
         return NextResponse.json({
           error: "Cannot add items from different vendors. Please clear your cart first.",

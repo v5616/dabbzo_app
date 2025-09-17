@@ -1,4 +1,5 @@
 // app/vendors/page.tsx
+import Image from "next/image";
 import Link from "next/link";
 
 interface Vendor {
@@ -103,9 +104,11 @@ export default async function VendorsPage({
           {vendors.map((vendor, indx) => (
             <Link key={indx} href={`/vendor/${vendor._id}`}>
               <div className="border rounded-lg p-4 shadow hover:shadow-md transition">
-                <img
+                <Image
                   src={vendor.image}
                   alt={vendor.name}
+                  width={400}
+                  height={160}
                   className="h-40 w-full object-cover rounded-lg mb-4"
                 />
                 <h3 className="text-lg font-semibold mb-2">{vendor.name}</h3>

@@ -4,9 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/providers/AuthProvider";
+import Image from "next/image";
 
 function ProfilePage() {
-  const { user, loading, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   // Mock user data - in a real app, this would come from authentication context
   const [userState, setUser] = useState({
     name: "John Doe",
@@ -69,7 +70,7 @@ function ProfilePage() {
       await signOut();
       // The AuthProvider will handle the redirect automatically
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error("Error signing out:", error);
     }
   };
 
@@ -109,7 +110,7 @@ function ProfilePage() {
               <div className="bg-gradient-to-r from-primary to-secondary rounded-full p-1 relative">
                 <div className="bg-white rounded-full p-1">
                   {userState.profilePicture ? (
-                    <img
+                    <Image
                       src={userState.profilePicture}
                       alt={userState.name}
                       className="h-20 w-20 rounded-full object-cover"
